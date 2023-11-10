@@ -1,4 +1,4 @@
-# generic-service
+# generic handler
 
 Using generics to reduce some boilerplate code from HTTP handlers.
 
