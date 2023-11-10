@@ -25,7 +25,9 @@ jobs:
         go-version: ${{ matrix.go-version }}
 
     - name: Format
-      run: make fmt
+      run: |
+        go fmt ./...
+        go vet ./...
 
     - name: Build
       run: make build
