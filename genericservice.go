@@ -1,4 +1,4 @@
-package genericservice
+package generichandler
 
 import (
 	"context"
@@ -36,10 +36,11 @@ var (
 
 func ToHandlerFunc[RequestType any](endpoint APIEndpoint[RequestType]) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// deserialize the body
 		requestData := new(RequestType)
 		if err := json.NewDecoder(r.Body).Decode(requestData); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			// encode a default error JSON, like {"error": "foobar"}
+			json.NewEncoder(w).Encode(ErrorResponse{Error: err.Error()})
 		}
 
 		ctx := r.Context()

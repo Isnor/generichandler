@@ -79,7 +79,10 @@ Breaking that up, we have:
 
 It looks like if we make some assumptions about how the RequestType is modeled and how the API functions should work, we can generalize this into a fairly neat pattern, and since generics were added in `1.18`, we don't need to rely on type assertions any more. In a nutshell, that's all this module does; abstract away the HTTP components and focus on the functionality of the service / endpoint.
 
-To do that, we need to set some "sensible defaults":
+To do that, we need to make some assumptions:
 * The client is sending JSON and expecting JSON in return
 * `RequestType`s for each endpoint should implement `Validate(context.Context) error`
 * Endpoints should use `errors.WithMessage(error, string)` with one of the ones defined in this package when they want to signal a specific error, e.g. NotFound, InvalidRequest
+* all of the information that the handler requires can be passed to it via the (context, RequestType) it receives.
+  * because of this, the programmer needs to be able to control how the request information is deserialized. If they want to decode auth information and store it in the `context`, fine; if they want to store it on the request object, fine as well
+ 
