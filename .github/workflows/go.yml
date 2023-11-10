@@ -30,7 +30,7 @@ jobs:
         go vet ./...
 
     - name: Build
-      run: make build
+      run: go build .
 
     - name: Test
       run: go test -json -v ./... > TestResults-${{ matrix.go-version }}.json
