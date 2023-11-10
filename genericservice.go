@@ -34,7 +34,7 @@ var (
 	ErrorNotFound       = errors.New("no data found")
 )
 
-func ToHandlerFunc[RequestType any](endpoint APIEndpoint[RequestType]) http.HandlerFunc {
+func ToHandlerFunc[RequestType Validatable](endpoint APIEndpoint[RequestType]) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// deserialize the body
 		requestData := new(RequestType)
@@ -44,6 +44,11 @@ func ToHandlerFunc[RequestType any](endpoint APIEndpoint[RequestType]) http.Hand
 		}
 
 		ctx := r.Context()
+		if err := (*requestData).Validate(ctx); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(ErrorResponse{Error: err.Error()})
+			return
+		}
 		responseData, err := endpoint(ctx, requestData)
 		if err != nil {
 			// try to set a relevant HTTP status code

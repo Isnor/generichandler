@@ -127,23 +127,27 @@ type pet struct {
 	addedAt time.Time
 }
 
+func (p pet) Validate(context.Context) error {
+	if len(p.Name) == 0 {
+		return errors.WithMessage(generichandler.ErrorInvalidRequest, "the pet must have a name")
+	}
+	if len(p.Owner) == 0 {
+		return errors.WithMessage(generichandler.ErrorInvalidRequest, "the pet must have an owner")
+	}
+	if p.Age == 0 {
+		return errors.WithMessage(generichandler.ErrorInvalidRequest, "the pet must be at least 1 year old")
+	}
+
+	return nil
+}
+
 // our "pet API", that uses an in-memory datastore to keep track of people's pets
 type petAPI struct {
 	pets map[string]*pet
 }
 
-// AddPet adds a pet to the API
+// AddPet adds a pet to the API. This function assumes that the provided pet is valid
 func (api *petAPI) AddPet(ctx context.Context, pet *pet) (*pet, error) {
-	if len(pet.Name) == 0 {
-		return nil, errors.WithMessage(generichandler.ErrorInvalidRequest, "the pet must have a name")
-	}
-	if len(pet.Owner) == 0 {
-		return nil, errors.WithMessage(generichandler.ErrorInvalidRequest, "the pet must have an owner")
-	}
-	if pet.Age == 0 {
-		return nil, errors.WithMessage(generichandler.ErrorInvalidRequest, "the pet must be at least 1 year old")
-	}
-
 	addedPet := pet
 	addedPet.addedAt = time.Now()
 	api.pets[pet.Name] = addedPet
