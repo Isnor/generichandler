@@ -28,6 +28,7 @@ func TestToHandlerFunc(t *testing.T) {
 	// this is just to satisfy httptest.NewRequest and doesn't really matter for these tests
 	const apiPath = "/pet"
 
+	// these are the simple "given this input, this function responds with this output" test definitions
 	tests := []testDef{
 		{
 			name: "successful add",
@@ -37,19 +38,58 @@ func TestToHandlerFunc(t *testing.T) {
 				Age:   3,
 			},
 			expectations: func(test *testing.T, input, output *pet, response *http.Response) {
-				if response.StatusCode != 200 {
-					t.Error("should have returned 200")
+				if response.StatusCode != http.StatusOK {
+					test.Error("should have returned 200")
 				}
 
 				if output.addedAt.After(time.Now()) {
-					t.Error("invalid timestamp on added Pet")
+					test.Error("invalid timestamp on added Pet")
+				}
+			},
+		},
+		{
+			name: "no name",
+			petToTest: &pet{
+				Owner: "jeff",
+				Age:   3,
+			},
+			expectations: func(test *testing.T, input, output *pet, response *http.Response) {
+				if response.StatusCode != http.StatusBadRequest {
+					test.Error("should have returned 400")
+				}
+			},
+		},
+		{
+			name: "no owner",
+			petToTest: &pet{
+				Name: "fifi",
+				Age:  3,
+			},
+			expectations: func(test *testing.T, input, output *pet, response *http.Response) {
+				if response.StatusCode != http.StatusBadRequest {
+					test.Error("should have returned 400")
+				}
+			},
+		},
+		{
+			name: "no age",
+			petToTest: &pet{
+				Name:  "fifi",
+				Owner: "jessica",
+			},
+			expectations: func(test *testing.T, input, output *pet, response *http.Response) {
+				if response.StatusCode != http.StatusBadRequest {
+					test.Error("should have returned 400")
 				}
 			},
 		},
 	}
 
 	for _, test := range tests {
-		// 16 of the 17 lines of code here are boilerplate:
+		// 16 of the 17 lines of code here are boilerplate, but this also only covers a very limited set of fairly simple endpoints.
+		// Without generics though, we need to write this code for every RequestType and Endpoint in the service.
+		// I do think this is how APIs should be tested so that we don't lose the ability to makes assertions about our HTTP response,
+		// but I also wish this weren't so verbose.
 		t.Run(test.name, func(t *testing.T) {
 
 			// turn our request/test input into an HTTP request
@@ -79,9 +119,9 @@ func TestToHandlerFunc(t *testing.T) {
 }
 
 func TestHandlerDirectly(t *testing.T) {
-	// in the above example, we were testing against an HTTP endpoint using httptest, but if ToHandlerFunc works properly, we almost shouldn't need to
-	// we can define the same tests as above, but change the way the test runs and the signature of the expectations function to simplify the tests and
-	// remove boilerplate, uninteresting code:
+	// in the above example, we were testing against an HTTP endpoint using httptest, but if ToHandlerFunc works properly and all we want
+	// is to validate the behaviour of the endpoint, then we can just skip the unmarshal/marshal behaviour.
+	// By sacrificing the HTTP context, we can remove what is often uninteresting code and just test the input and output of the function:
 	type testDef struct {
 		name         string
 		petToTest    *pet
@@ -109,6 +149,49 @@ func TestHandlerDirectly(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "no name",
+			petToTest: &pet{
+				Owner: "jeff",
+				Age:   3,
+			},
+			expectations: func(test *testing.T, input, output *pet, err error) {
+				if err != nil {
+					test.Error("expected an error")
+					return
+				}
+				// we also lose the ability to check the type of error or the message that the caller will receive,
+				// because the Validate method is called by ToHandlerFunc.
+				// if !errors.Is(err, generichandler.ErrorInvalidRequest) {
+				// 	test.Error("expected InvalidRequest")
+				// 	return
+				// }
+			},
+		},
+		{
+			name: "no owner",
+			petToTest: &pet{
+				Name: "fifi",
+				Age:  3,
+			},
+			expectations: func(test *testing.T, input, output *pet, err error) {
+				if err != nil {
+					test.Error("expected an error")
+				}
+			},
+		},
+		{
+			name: "no age",
+			petToTest: &pet{
+				Name:  "fifi",
+				Owner: "jessica",
+			},
+			expectations: func(test *testing.T, input, output *pet, err error) {
+				if err != nil {
+					test.Error("expected an error")
+				}
+			},
+		},
 	}
 
 	for _, test := range tests {
@@ -127,6 +210,7 @@ type pet struct {
 	addedAt time.Time
 }
 
+// Validate returns an error if Name, Owner, or Age is not set
 func (p pet) Validate(context.Context) error {
 	if len(p.Name) == 0 {
 		return errors.WithMessage(generichandler.ErrorInvalidRequest, "the pet must have a name")

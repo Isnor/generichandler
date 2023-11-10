@@ -41,6 +41,7 @@ func ToHandlerFunc[RequestType Validatable](endpoint APIEndpoint[RequestType]) h
 		if err := json.NewDecoder(r.Body).Decode(requestData); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(ErrorResponse{Error: err.Error()})
+			return
 		}
 
 		ctx := r.Context()
