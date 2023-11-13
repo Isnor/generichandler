@@ -2,7 +2,7 @@
 
 Using generics to reduce some boilerplate code from HTTP handlers.
 
-This module doesn't have very much code implemented in it; it isn't a middleware or a mux, it isn't really a framework, and it isn't something you can quickly drop into an existing codebase. This is really just an experiment. The hope is to relieve some of the annoyances I'm used to experiencing when writing REST APIs and allow us to test the endpoint as if they were simply functions, irrespective of the HTTP context. This isn't always desirable, but can be useful if it's otherwise very difficult to simulate or mock the behaviour required to pass a particular state to or reach a certain code path in the handler.
+This module doesn't have very much code implemented in it; it isn't a middleware or a mux, it isn't really a framework, and it isn't something you can quickly drop into an existing codebase. It's more like guidelines and restrictions that try to encourage clean APIs. The hope is to relieve some of the annoyances I'm used to experiencing when writing REST APIs and allow us to test the endpoint as if they were simply functions, irrespective of the HTTP context. This isn't always desirable, but can be useful if it's otherwise very difficult to simulate or mock the behaviour required to pass a particular state to or reach a certain code path in the handler.
 
 ## Design
 
@@ -26,7 +26,11 @@ func AddPet(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-The `httptest` library exists to test these functions and in general, I think that's how we should be testing APIs; however, the function itself is "weird" because the return type is void. The way the programmer communicates with the caller is via the `http.ResponseWriter` object, which makes sense when we think about what's actually happening to allow us to talk over HTTP, but it makes writing code for larger APIs very tedious.
+The `httptest` library exists to test these functions and in general, I think that's how we should be testing APIs; however, the `AddPet` function itself is "weird" because the return type is void. The way the programmer communicates with the caller is via the `http.ResponseWriter` object, which makes sense when we think about what's actually happening to allow us to talk over HTTP, but it makes writing code for larger APIs very tedious and difficult to test.
+
+
+
+### Simple Example
 
 Most of the time when we write handler functions, we define a struct with JSON tags for the endpoint, unmarshal the `*http.Request`, and then use the struct, like in the above example. The most interesting part of the code is what we do with the `Pet`:
 
@@ -82,6 +86,6 @@ It looks like if we make some assumptions about how the RequestType is modeled a
 And those assumptions are:
 * The client is sending JSON and expecting JSON in return;
 * The endpoint has a need to have many varing input<->output verifications;
-* `RequestType`s for each endpoint implement `Validate(context.Context) error`
+* `RequestType`s for each endpoint should implement `Validate(context.Context) error`
 * all of the information that the handler requires can be passed to it via the (context, RequestType) it receives.
   * because of this, the programmer needs to be able to control how the request information is deserialized. If they want to decode auth information and store it in the `context`, fine; if they want to store it on the request object, fine as well

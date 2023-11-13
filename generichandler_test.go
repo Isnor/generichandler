@@ -108,6 +108,7 @@ func TestToHandlerFunc(t *testing.T) {
 			convertedHandler(recorder, request)
 			endpointResult := &pet{}
 			httpResponse := recorder.Result()
+			// unmarshal the response body - we're assuming that the (converted) handler has encoded a JSON body
 			if err := json.NewDecoder(httpResponse.Body).Decode(endpointResult); err != nil {
 				t.Errorf("failed deserializing response body %v\n", err)
 			}
@@ -160,12 +161,6 @@ func TestHandlerDirectly(t *testing.T) {
 					test.Error("expected an error")
 					return
 				}
-				// we also lose the ability to check the type of error or the message that the caller will receive,
-				// because the Validate method is called by ToHandlerFunc.
-				// if !errors.Is(err, generichandler.ErrorInvalidRequest) {
-				// 	test.Error("expected InvalidRequest")
-				// 	return
-				// }
 			},
 		},
 		{
