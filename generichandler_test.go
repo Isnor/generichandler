@@ -24,7 +24,7 @@ func TestToHandlerFunc(t *testing.T) {
 		pets: make(map[string]*pet),
 	}
 	// "convert" the "regular function" of api.AddPet into an "endpoint function", i.e. a `HandlerFunc`
-	convertedHandler := generichandler.ToHandlerFunc(api.addPet)
+	convertedHandler := generichandler.DefaultJSONHandlerFunc(api.addPet)
 	// this is just to satisfy httptest.NewRequest and doesn't really matter for these tests
 	const apiPath = "/pet"
 
