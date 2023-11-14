@@ -24,7 +24,7 @@ func TestToHandlerFunc(t *testing.T) {
 		pets: make(map[string]*pet),
 	}
 	// "convert" the "regular function" of api.AddPet into an "endpoint function", i.e. a `HandlerFunc`
-	convertedHandler := generichandler.ToHandlerFunc(api.AddPet)
+	convertedHandler := generichandler.ToHandlerFunc(api.addPet)
 	// this is just to satisfy httptest.NewRequest and doesn't really matter for these tests
 	const apiPath = "/pet"
 
@@ -191,7 +191,7 @@ func TestHandlerDirectly(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := api.AddPet(context.Background(), test.petToTest)
+			result, err := api.addPet(context.Background(), test.petToTest)
 			test.expectations(t, test.petToTest, result, err)
 		})
 	}
@@ -225,8 +225,8 @@ type petAPI struct {
 	pets map[string]*pet
 }
 
-// AddPet adds a pet to the API. This function assumes that the provided pet is valid
-func (api *petAPI) AddPet(ctx context.Context, pet *pet) (*pet, error) {
+// addPet adds a pet to the API. This function assumes that the provided pet is valid
+func (api *petAPI) addPet(ctx context.Context, pet *pet) (*pet, error) {
 	addedPet := pet
 	addedPet.addedAt = time.Now()
 	api.pets[pet.Name] = addedPet
