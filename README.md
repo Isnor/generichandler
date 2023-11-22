@@ -85,7 +85,7 @@ It looks like if we make some assumptions about how the RequestType is modeled a
 
 And those assumptions are:
 * The client is sending JSON and expecting JSON in return;
-* The endpoint has a need to have many varing input<->output verifications;
+* The endpoint has a need to have many varying input<->output verifications;
 * `RequestType`s for each endpoint should implement `Validate(context.Context) error`
 * all of the information that the handler requires can be passed to it via the (context, RequestType) it receives.
   * because of this, the programmer needs to be able to control how the request information is deserialized. If they want to decode auth information and store it in the `context`, fine; if they want to store it on the request object, fine as well
