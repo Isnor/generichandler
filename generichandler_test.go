@@ -197,6 +197,27 @@ func TestHandlerDirectly(t *testing.T) {
 	}
 }
 
+type foo struct {
+	Name  string `json:"name" required:"true"`
+	Owner string `json:"owner"`
+}
+
+func TestFoo(t *testing.T) {
+	x := &foo{}
+	err := json.Unmarshal([]byte(`{
+		"owner":"john",
+		"nam": "misspelled"
+	}
+	`), x)
+
+	if err != nil {
+		t.Error("should not have had an error")
+	}
+	if x.Name != "" {
+		t.Error("name was not empty")
+	}
+}
+
 // this is just a simple "Pet" API; it doesn't really do much, it just gives us _something_ to test
 type pet struct {
 	Name    string
