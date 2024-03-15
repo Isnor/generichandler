@@ -4,6 +4,27 @@ Using generics to reduce some boilerplate code from HTTP handlers.
 
 This module doesn't have very much code implemented in it; it isn't a middleware or a mux, it isn't really a framework, and it isn't something you can quickly drop into an existing codebase. It's more like guidelines and restrictions that try to encourage clean APIs. The hope is to relieve some of the annoyances I'm used to experiencing when writing REST APIs and allow us to test the endpoint as if they were simply functions, irrespective of the HTTP context. This isn't always desirable, but can be useful if it's otherwise very difficult to simulate or mock the behaviour required to pass a particular state to or reach a certain code path in the handler.
 
+## Usage
+
+This module provides an easy way to create `http.HandlerFunc`s out of functions with a more predictable and testable signature; e.g. `func handle(ctx context.Context, p *InputType) (*OutputType, error)`.
+
+Simple usage:
+
+```golang
+// write your handler function - e.g. pet.go:
+func (api *petAPI) addPet(ctx context.Context, pet *pet) (*pet, error) { 
+  ...
+}
+
+// wrap the function with generichandler - e.g. main.go:
+...
+
+myConvertedHandler := generichandler.DefaultJSONHandlerFunc(api.addPet)
+http.ListenAndServe(":8080", myConvertedHandler) // accepts JSON, responds with JSON
+
+
+```
+
 ## Design
 
 The main idea is to remove the need to write endpoint handlers as `http.HandlerFunc`s:
@@ -71,7 +92,7 @@ func AddPet(w http.ResponseWriter, r *http.Request) {
   }
 
   // handle success
-  json.NewEncoder(w).Encode(pet)
+  json.NewEncoder(w).Encode(addedPet)
   w.WriteHeader(http.StatusOK)
 }
 ```
