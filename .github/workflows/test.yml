@@ -14,12 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-version: [ '1.20', '1.21', '1.22' ]
+        go-version: [ '1.25', '1.26' ]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Set up Go ${{ matrix.go-version }}
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v6
       with:
         go-version: ${{ matrix.go-version }}
 
@@ -35,7 +35,7 @@ jobs:
       run: go test -json -v ./... > TestResults-${{ matrix.go-version }}.json
 
     - name: Upload test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v7
       with:
         name: test-results-${{ matrix.go-version }}
         path: TestResults-${{ matrix.go-version }}.json

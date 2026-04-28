@@ -1,4 +1,5 @@
 # generic handler
+[![Go Reference](https://pkg.go.dev/badge/github.com/Isnor/generichandler.svg)](https://pkg.go.dev/github.com/Isnor/generichandler)
 
 Using generics to reduce some boilerplate code from HTTP handlers.
 
